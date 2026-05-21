@@ -7,9 +7,14 @@ public static class ArchitectureGraphMermaidWriter
 {
     public static string Write(ArchitectureGraph graph, string outputDirectory, GroupByMode groupBy)
     {
+        return Write(Render(graph, groupBy), outputDirectory);
+    }
+
+    public static string Write(string mermaidSource, string outputDirectory)
+    {
         Directory.CreateDirectory(outputDirectory);
         var path = Path.Combine(outputDirectory, "class-graph.mmd");
-        File.WriteAllText(path, Render(graph, groupBy));
+        File.WriteAllText(path, mermaidSource);
         return path;
     }
 

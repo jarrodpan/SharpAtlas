@@ -36,6 +36,7 @@ try
     string? jsonPath = null;
     string? mermaidPath = null;
     string? htmlPath = null;
+    string? mermaidViewerPath = null;
 
     if (OutputFormatSelection.ShouldWriteJson(options.Format))
     {
@@ -44,7 +45,13 @@ try
 
     if (OutputFormatSelection.ShouldWriteMermaid(options.Format))
     {
-        mermaidPath = ArchitectureGraphMermaidWriter.Write(graph, options.OutputPath, options.GroupBy);
+        var mermaidSource = ArchitectureGraphMermaidWriter.Render(graph, options.GroupBy);
+        mermaidPath = ArchitectureGraphMermaidWriter.Write(mermaidSource, options.OutputPath);
+
+        if (OutputFormatSelection.ShouldWriteMermaidViewer(options.Format))
+        {
+            mermaidViewerPath = ArchitectureGraphMermaidHtmlWriter.Write(mermaidSource, options.OutputPath);
+        }
     }
 
     if (OutputFormatSelection.ShouldWriteHtml(options.Format))
@@ -52,7 +59,7 @@ try
         htmlPath = ArchitectureGraphHtmlWriter.Write(graph, options.OutputPath);
     }
 
-    reporter.Summary(graph, options, jsonPath, mermaidPath, htmlPath);
+    reporter.Summary(graph, options, jsonPath, mermaidPath, htmlPath, mermaidViewerPath);
     return 0;
 }
 catch (Exception ex)

@@ -36,5 +36,7 @@ public static class OutputFormatSelection
 
     public static bool ShouldWriteMermaid(OutputFormat format) => format is OutputFormat.Mermaid or OutputFormat.All;
 
+    public static bool ShouldWriteMermaidViewer(OutputFormat format) => ShouldWriteMermaid(format);
+
     public static bool ShouldWriteHtml(OutputFormat format) => format is OutputFormat.Html or OutputFormat.All;
 }

@@ -67,5 +67,15 @@ public sealed class CommandLineParserTests
         Assert.True(OutputFormatSelection.ShouldWriteJson(OutputFormat.All));
         Assert.True(OutputFormatSelection.ShouldWriteMermaid(OutputFormat.All));
         Assert.True(OutputFormatSelection.ShouldWriteHtml(OutputFormat.All));
+        Assert.True(OutputFormatSelection.ShouldWriteMermaidViewer(OutputFormat.All));
+    }
+
+    [Fact]
+    public void MermaidFormatWritesMermaidAndMermaidViewerOnly()
+    {
+        Assert.False(OutputFormatSelection.ShouldWriteJson(OutputFormat.Mermaid));
+        Assert.True(OutputFormatSelection.ShouldWriteMermaid(OutputFormat.Mermaid));
+        Assert.True(OutputFormatSelection.ShouldWriteMermaidViewer(OutputFormat.Mermaid));
+        Assert.False(OutputFormatSelection.ShouldWriteHtml(OutputFormat.Mermaid));
     }
 }

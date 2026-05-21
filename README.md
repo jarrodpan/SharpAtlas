@@ -57,6 +57,31 @@ The generated HTML visualiser supports:
 
 The default EntryPoint Flow layout places detected Program/Main-style entrypoints on the left and their dependencies to the right.
 
+## Local Mermaid viewer
+
+SharpAtlas generates a local Mermaid viewer when Mermaid output is requested:
+
+```bash
+dotnet run --project src/SharpAtlas -- --solution path/to/App.sln --output artifacts/architecture --format mermaid
+```
+
+This creates:
+
+```text
+class-graph.mmd
+class-graph-mermaid.html
+```
+
+Open:
+
+```text
+class-graph-mermaid.html
+```
+
+This avoids online Mermaid viewer text limits because the Mermaid source is embedded directly into the local HTML file.
+
+For very large codebases, the interactive `class-graph.html` visualiser is usually more practical than Mermaid.
+
 ## Future global tool usage
 
 ```bash
@@ -91,6 +116,7 @@ SharpAtlas writes:
 class-graph.json
 class-graph.mmd
 class-graph.html
+class-graph-mermaid.html
 ```
 
 ## JSON schema
