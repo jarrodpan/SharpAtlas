@@ -12,6 +12,30 @@ dotnet run --project src/SharpAtlas -- --solution path/to/App.sln --output artif
 dotnet run --project src/SharpAtlas -- --project path/to/App.csproj --output artifacts/architecture --format json
 ```
 
+## HTML visualiser
+
+SharpAtlas can generate a local interactive HTML visualiser:
+
+```bash
+dotnet run --project src/SharpAtlas -- --solution path/to/App.sln --output artifacts/architecture --format html
+```
+
+Then open:
+
+```text
+artifacts/architecture/class-graph.html
+```
+
+The visualiser supports:
+
+- zoom/pan
+- node search
+- node selection
+- incoming/outgoing dependency highlighting
+- path-to-entrypoint highlighting
+- relationship filtering
+- layout switching
+
 ## Future global tool usage
 
 ```bash
@@ -26,7 +50,7 @@ sharp-atlas --solution path/to/App.sln --output artifacts/architecture --format 
 
 `--output` sets the output directory. Default: `artifacts/architecture`.
 
-`--format` supports `json`, `mermaid`, or `all`. Default: `all`.
+`--format` supports `json`, `mermaid`, `html`, or `all`. Default: `all`.
 
 `--include-tests` includes test projects and test files.
 
@@ -45,6 +69,7 @@ SharpAtlas writes:
 ```text
 class-graph.json
 class-graph.mmd
+class-graph.html
 ```
 
 ## JSON schema

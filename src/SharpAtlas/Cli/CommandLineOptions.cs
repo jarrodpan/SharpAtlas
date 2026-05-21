@@ -6,6 +6,7 @@ public enum OutputFormat
 {
     Json,
     Mermaid,
+    Html,
     All
 }
 
@@ -27,4 +28,13 @@ public sealed record CommandLineOptions
     public IReadOnlySet<string> Relationships { get; init; } = ArchitectureRelationship.All;
     public bool ShowHelp { get; init; }
     public ArchitectureGraphSource? Source { get; init; }
+}
+
+public static class OutputFormatSelection
+{
+    public static bool ShouldWriteJson(OutputFormat format) => format is OutputFormat.Json or OutputFormat.Html or OutputFormat.All;
+
+    public static bool ShouldWriteMermaid(OutputFormat format) => format is OutputFormat.Mermaid or OutputFormat.All;
+
+    public static bool ShouldWriteHtml(OutputFormat format) => format is OutputFormat.Html or OutputFormat.All;
 }

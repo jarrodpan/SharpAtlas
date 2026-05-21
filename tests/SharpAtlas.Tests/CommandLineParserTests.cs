@@ -43,4 +43,29 @@ public sealed class CommandLineParserTests
 
         Assert.False(result.Success);
     }
+
+    [Fact]
+    public void ParseSupportsHtmlFormat()
+    {
+        var result = CommandLineParser.Parse(["--format", "html"]);
+
+        Assert.True(result.Success);
+        Assert.Equal(OutputFormat.Html, result.Options!.Format);
+    }
+
+    [Fact]
+    public void HtmlFormatAlsoWritesJson()
+    {
+        Assert.True(OutputFormatSelection.ShouldWriteJson(OutputFormat.Html));
+        Assert.True(OutputFormatSelection.ShouldWriteHtml(OutputFormat.Html));
+        Assert.False(OutputFormatSelection.ShouldWriteMermaid(OutputFormat.Html));
+    }
+
+    [Fact]
+    public void AllFormatIncludesHtmlOutput()
+    {
+        Assert.True(OutputFormatSelection.ShouldWriteJson(OutputFormat.All));
+        Assert.True(OutputFormatSelection.ShouldWriteMermaid(OutputFormat.All));
+        Assert.True(OutputFormatSelection.ShouldWriteHtml(OutputFormat.All));
+    }
 }

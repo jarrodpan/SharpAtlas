@@ -54,7 +54,7 @@ public static class CommandLineParser
                 case "--format":
                     if (!TryReadValue(args, ref i, out var formatValue) || !TryParseFormat(formatValue, out format))
                     {
-                        return CommandLineParseResult.Fail("--format must be json, mermaid, or all.");
+                        return CommandLineParseResult.Fail("--format must be json, mermaid, html, or all.");
                     }
 
                     break;
@@ -130,7 +130,7 @@ public static class CommandLineParser
           --solution <path>       C# solution to scan.
           --project <path>        C# project to scan.
           --output <path>         Output directory. Default: artifacts/architecture.
-          --format <value>        json, mermaid, or all. Default: all.
+          --format <value>        json, mermaid, html, or all. Default: all.
           --include-tests         Include test projects and files.
           --include-external      Include external/library/framework type nodes.
           --relationship <list>   Comma-separated relationship filters.
@@ -178,11 +178,12 @@ public static class CommandLineParser
         {
             "json" => OutputFormat.Json,
             "mermaid" => OutputFormat.Mermaid,
+            "html" => OutputFormat.Html,
             "all" => OutputFormat.All,
             _ => default
         };
 
-        return value is "json" or "mermaid" or "all";
+        return value is "json" or "mermaid" or "html" or "all";
     }
 
     private static bool TryParseGroupBy(string value, out GroupByMode groupBy)

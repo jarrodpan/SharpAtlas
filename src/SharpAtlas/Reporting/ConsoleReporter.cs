@@ -10,7 +10,7 @@ public sealed class ConsoleReporter : IScanReporter
 
     public void Error(string message) => Console.Error.WriteLine(message);
 
-    public void Summary(ArchitectureGraph graph, CommandLineOptions options, string? jsonPath, string? mermaidPath)
+    public void Summary(ArchitectureGraph graph, CommandLineOptions options, string? jsonPath, string? mermaidPath, string? htmlPath)
     {
         Console.WriteLine("SharpAtlas architecture graph generated.");
         Console.WriteLine($"Source: {graph.Source.Path}");
@@ -28,6 +28,11 @@ public sealed class ConsoleReporter : IScanReporter
         if (mermaidPath is not null)
         {
             Console.WriteLine($"Mermaid: {mermaidPath}");
+        }
+
+        if (htmlPath is not null)
+        {
+            Console.WriteLine($"HTML: {htmlPath}");
         }
     }
 }

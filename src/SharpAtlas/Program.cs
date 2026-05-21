@@ -35,18 +35,24 @@ try
 
     string? jsonPath = null;
     string? mermaidPath = null;
+    string? htmlPath = null;
 
-    if (options.Format is OutputFormat.Json or OutputFormat.All)
+    if (OutputFormatSelection.ShouldWriteJson(options.Format))
     {
         jsonPath = ArchitectureGraphJsonWriter.Write(graph, options.OutputPath);
     }
 
-    if (options.Format is OutputFormat.Mermaid or OutputFormat.All)
+    if (OutputFormatSelection.ShouldWriteMermaid(options.Format))
     {
         mermaidPath = ArchitectureGraphMermaidWriter.Write(graph, options.OutputPath, options.GroupBy);
     }
 
-    reporter.Summary(graph, options, jsonPath, mermaidPath);
+    if (OutputFormatSelection.ShouldWriteHtml(options.Format))
+    {
+        htmlPath = ArchitectureGraphHtmlWriter.Write(graph, options.OutputPath);
+    }
+
+    reporter.Summary(graph, options, jsonPath, mermaidPath, htmlPath);
     return 0;
 }
 catch (Exception ex)
