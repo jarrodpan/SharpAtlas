@@ -42,6 +42,8 @@ public sealed class ArchitectureGraphMermaidHtmlWriterTests : IDisposable
         Assert.Contains("Toggle Source", html);
         Assert.Contains("Download SVG", html);
         Assert.Contains("Mermaid failed to render this diagram.", html);
+        Assert.Contains("maxTextSize: 50000000", html);
+        Assert.Contains("maxEdges: 100000", html);
     }
 
     [Fact]

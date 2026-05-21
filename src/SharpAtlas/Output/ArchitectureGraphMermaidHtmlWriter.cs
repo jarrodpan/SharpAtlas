@@ -215,6 +215,8 @@ public static class ArchitectureGraphMermaidHtmlWriter
                   startOnLoad: false,
                   securityLevel: 'loose',
                   theme: 'dark',
+                  maxTextSize: 50000000,
+                  maxEdges: 100000,
                   flowchart: {
                     useMaxWidth: false,
                     htmlLabels: true,
@@ -363,7 +365,8 @@ public static class ArchitectureGraphMermaidHtmlWriter
                     '',
                     String(error?.stack || error?.message || error),
                     '',
-                    'Large graphs may be too complex for Mermaid. Try using class-graph.html, the Cytoscape-based SharpAtlas visualiser, for large codebases.'
+                    'The local viewer raises Mermaid text and edge limits, but very large graphs may still be too complex for Mermaid.',
+                    'Try using class-graph.html, the Cytoscape-based SharpAtlas visualiser, for large codebases.'
                   ].join('\n');
                 }
 
