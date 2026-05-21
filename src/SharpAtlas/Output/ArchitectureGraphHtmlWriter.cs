@@ -106,7 +106,10 @@ public static class ArchitectureGraphHtmlWriter
                   width: 100%;
                   height: 100%;
                   background: var(--graph);
+                  cursor: grab;
                 }
+
+                #cy.grabbing { cursor: grabbing; }
 
                 label {
                   display: block;
@@ -134,6 +137,7 @@ public static class ArchitectureGraphHtmlWriter
 
                 button:hover { border-color: #3b82f6; }
                 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+                .row.three { grid-template-columns: 1fr 1fr 1fr; }
                 .checks { display: grid; gap: 6px; margin-top: 8px; }
                 .check {
                   display: grid;
@@ -144,6 +148,12 @@ public static class ArchitectureGraphHtmlWriter
                   font-size: 13px;
                 }
                 .check input { width: auto; padding: 0; }
+                .hint {
+                  color: var(--muted);
+                  font-size: 12px;
+                  line-height: 1.45;
+                  margin-top: 8px;
+                }
                 .message {
                   min-height: 20px;
                   margin-top: 12px;
@@ -174,6 +184,22 @@ public static class ArchitectureGraphHtmlWriter
                   margin-top: 4px;
                   overflow-wrap: anywhere;
                 }
+                .shortcut {
+                  display: grid;
+                  grid-template-columns: 54px 1fr;
+                  gap: 8px;
+                  margin-top: 6px;
+                  color: #cbd5e1;
+                  font-size: 12px;
+                }
+                kbd {
+                  border: 1px solid var(--line);
+                  border-radius: 4px;
+                  background: #0b1118;
+                  color: var(--text);
+                  padding: 1px 5px;
+                  text-align: center;
+                }
 
                 @media (max-width: 1100px) {
                   .shell { grid-template-columns: 300px 1fr; }
@@ -199,12 +225,14 @@ public static class ArchitectureGraphHtmlWriter
 
                   <label for="layout">Layout</label>
                   <select id="layout">
+                    <option value="entrypoint-flow">entrypoint-flow</option>
+                    <option value="breadthfirst-lr">breadthfirst-lr</option>
                     <option value="cose">cose</option>
-                    <option value="breadthfirst">breadthfirst</option>
+                    <option value="concentric">concentric</option>
                     <option value="circle">circle</option>
                     <option value="grid">grid</option>
-                    <option value="concentric">concentric</option>
                   </select>
+                  <div class="hint" id="layout-note">Entrypoint Flow places Program/Main-style entrypoints on the left and dependencies to the right.</div>
 
                   <label for="group-mode">Color by</label>
                   <select id="group-mode">
@@ -212,15 +240,36 @@ public static class ArchitectureGraphHtmlWriter
                     <option value="assembly">assembly</option>
                   </select>
 
+                  <label>Navigate</label>
                   <div class="row">
                     <button id="fit">Fit graph</button>
-                    <button id="reset">Reset selection</button>
+                    <button id="fit-selected">Fit Selected</button>
                   </div>
+                  <button id="center-selected">Center Selected</button>
+                  <div class="row three">
+                    <button id="zoom-out">Zoom Out</button>
+                    <button id="zoom-in">Zoom In</button>
+                    <button id="reset-zoom">Reset Zoom</button>
+                  </div>
+                  <label class="check" for="lock-nodes">
+                    <input id="lock-nodes" type="checkbox" checked>
+                    <span>Lock node positions</span>
+                  </label>
+                  <button id="reset">Reset selection</button>
                   <button id="path">Highlight path to entrypoint</button>
                   <div class="message" id="status"></div>
 
                   <label>Relationships</label>
                   <div class="checks" id="relationship-filters"></div>
+
+                  <label>Shortcuts</label>
+                  <div class="shortcut"><kbd>+</kbd><span>Zoom in</span></div>
+                  <div class="shortcut"><kbd>-</kbd><span>Zoom out</span></div>
+                  <div class="shortcut"><kbd>0</kbd><span>Reset zoom</span></div>
+                  <div class="shortcut"><kbd>f</kbd><span>Fit graph</span></div>
+                  <div class="shortcut"><kbd>arrows</kbd><span>Pan diagram</span></div>
+                  <div class="shortcut"><kbd>WASD</kbd><span>Pan diagram</span></div>
+                  <div class="shortcut"><kbd>Esc</kbd><span>Clear selection/search</span></div>
                 </aside>
 
                 <main id="cy"></main>
@@ -240,6 +289,8 @@ public static class ArchitectureGraphHtmlWriter
                 const visibleRelationships = new Set(relationships);
                 let selectedNodeId = null;
                 let currentSearch = '';
+                let middlePan = null;
+                const defaultLayout = defaultLayoutName();
 
                 document.getElementById('node-count').textContent = `Nodes: ${graph.nodes.length}`;
                 document.getElementById('edge-count').textContent = `Edges: ${graph.edges.length}`;
@@ -273,7 +324,14 @@ public static class ArchitectureGraphHtmlWriter
                 const cy = cytoscape({
                   container: document.getElementById('cy'),
                   elements,
-                  wheelSensitivity: 0.18,
+                  wheelSensitivity: 0.25,
+                  minZoom: 0.05,
+                  maxZoom: 4,
+                  userZoomingEnabled: true,
+                  userPanningEnabled: true,
+                  boxSelectionEnabled: false,
+                  autoungrabify: false,
+                  autounselectify: false,
                   style: [
                     {
                       selector: 'node',
@@ -291,7 +349,8 @@ public static class ArchitectureGraphHtmlWriter
                         'text-background-opacity': 0.75,
                         'text-background-padding': 2,
                         'text-valign': 'center',
-                        'width': labelWidth
+                        'width': labelWidth,
+                        'cursor': 'pointer'
                       }
                     },
                     {
@@ -321,7 +380,7 @@ public static class ArchitectureGraphHtmlWriter
                     { selector: '.dimmed', style: { 'opacity': 0.14 } },
                     { selector: '.hiddenByRelationship', style: { 'display': 'none' } }
                   ],
-                  layout: layoutOptions('cose')
+                  layout: { name: 'preset' }
                 });
 
                 cy.nodes().forEach(node => {
@@ -331,17 +390,56 @@ public static class ArchitectureGraphHtmlWriter
 
                 renderRelationshipFilters();
                 updateDetails(null);
+                document.getElementById('layout').value = defaultLayout;
+                runLayout(defaultLayout);
 
                 cy.on('tap', 'node', event => selectNode(event.target.id()));
                 cy.on('tap', event => {
                   if (event.target === cy) resetSelection();
                 });
+                cy.on('mousedown', event => {
+                  if (event.target === cy) document.getElementById('cy').classList.add('grabbing');
+                });
+                cy.on('mouseup mouseout', () => document.getElementById('cy').classList.remove('grabbing'));
+                const cyHost = document.getElementById('cy');
+                cyHost.addEventListener('mousedown', event => {
+                  if (event.button !== 1) return;
+                  event.preventDefault();
+                  middlePan = {
+                    startX: event.clientX,
+                    startY: event.clientY,
+                    pan: { ...cy.pan() }
+                  };
+                  cyHost.classList.add('grabbing');
+                });
+                cyHost.addEventListener('auxclick', event => {
+                  if (event.button === 1) event.preventDefault();
+                });
+                window.addEventListener('mousemove', event => {
+                  if (!middlePan) return;
+                  event.preventDefault();
+                  cy.pan({
+                    x: middlePan.pan.x + event.clientX - middlePan.startX,
+                    y: middlePan.pan.y + event.clientY - middlePan.startY
+                  });
+                });
+                window.addEventListener('mouseup', event => {
+                  if (event.button !== 1 || !middlePan) return;
+                  middlePan = null;
+                  cyHost.classList.remove('grabbing');
+                });
 
-                document.getElementById('fit').addEventListener('click', () => cy.fit(undefined, 40));
+                document.getElementById('fit').addEventListener('click', fitGraph);
+                document.getElementById('fit-selected').addEventListener('click', fitSelected);
+                document.getElementById('center-selected').addEventListener('click', centerSelected);
+                document.getElementById('zoom-in').addEventListener('click', zoomIn);
+                document.getElementById('zoom-out').addEventListener('click', zoomOut);
+                document.getElementById('reset-zoom').addEventListener('click', resetZoom);
                 document.getElementById('reset').addEventListener('click', resetSelection);
                 document.getElementById('path').addEventListener('click', highlightPathToEntrypoint);
                 document.getElementById('layout').addEventListener('change', event => runLayout(event.target.value));
                 document.getElementById('group-mode').addEventListener('change', () => cy.style().update());
+                document.getElementById('lock-nodes').addEventListener('change', event => setNodeLock(event.target.checked));
                 document.getElementById('search').addEventListener('input', event => {
                   currentSearch = event.target.value.trim().toLowerCase();
                   applySearch();
@@ -354,6 +452,7 @@ public static class ArchitectureGraphHtmlWriter
                     cy.animate({ center: { eles: first }, zoom: Math.max(cy.zoom(), 1.1) }, { duration: 250 });
                   }
                 });
+                document.addEventListener('keydown', handleKeyboardShortcut);
 
                 function renderRelationshipFilters() {
                   const host = document.getElementById('relationship-filters');
@@ -416,6 +515,14 @@ public static class ArchitectureGraphHtmlWriter
                   applySearch();
                   updateDetails(null);
                   setStatus('');
+                }
+
+                function clearSearch() {
+                  currentSearch = '';
+                  const search = document.getElementById('search');
+                  search.value = '';
+                  cy.elements().removeClass('searchMatch dimmed');
+                  document.getElementById('match-message').textContent = '';
                 }
 
                 function updateDetails(node) {
@@ -519,15 +626,246 @@ public static class ArchitectureGraphHtmlWriter
                 }
 
                 function runLayout(name) {
-                  cy.layout(layoutOptions(name)).run();
+                  setLayoutNote(name);
+                  if (name === 'entrypoint-flow') {
+                    runEntrypointFlowLayout();
+                    return;
+                  }
+
+                  const layout = cy.layout(layoutOptions(name));
+                  layout.on('layoutstop', () => {
+                    if (name === 'breadthfirst-lr') rotateLayoutLeftToRight();
+                    finishLayout();
+                  });
+                  layout.run();
                 }
 
                 function layoutOptions(name) {
-                  const common = { name, animate: true, fit: true, padding: 40 };
+                  const common = { name, animate: true, fit: true, padding: 60 };
+                  if (name === 'breadthfirst-lr') return {
+                    ...common,
+                    name: 'breadthfirst',
+                    directed: true,
+                    roots: flowRoots(),
+                    spacingFactor: 1.5,
+                    padding: 100,
+                    circle: false,
+                    grid: false,
+                    avoidOverlap: true,
+                    nodeDimensionsIncludeLabels: true
+                  };
                   if (name === 'cose') return { ...common, idealEdgeLength: 110, nodeOverlap: 18, randomize: false };
-                  if (name === 'breadthfirst') return { ...common, directed: true, spacingFactor: 1.2 };
                   if (name === 'concentric') return { ...common, minNodeSpacing: 40 };
                   return common;
+                }
+
+                function defaultLayoutName() {
+                  const rootIds = new Set(graph.entrypoints || []);
+                  const hasEntrypointNode = graph.nodes.some(node => rootIds.has(node.id));
+                  return hasEntrypointNode ? 'entrypoint-flow' : 'breadthfirst-lr';
+                }
+
+                function flowRoots() {
+                  const rootIds = new Set(graph.entrypoints || []);
+                  let roots = cy.nodes().filter(node => rootIds.has(node.id()));
+                  if (roots.nonempty()) return roots;
+
+                  roots = cy.nodes().filter(node => node.indegree(false) === 0);
+                  if (roots.length > 0 && roots.length <= 40) return roots;
+                  return cy.nodes().slice(0, Math.min(20, cy.nodes().length));
+                }
+
+                function runEntrypointFlowLayout() {
+                  const roots = flowRoots();
+                  const rootIds = new Set(roots.map(node => node.id()));
+                  const depths = computeDepths(rootIds);
+                  const reachedNodes = cy.nodes().filter(node => depths.has(node.id()));
+                  const unreachedNodes = cy.nodes().difference(reachedNodes);
+                  const horizontalSpacing = 280;
+                  const verticalSpacing = 110;
+                  const buckets = new Map();
+
+                  for (const node of reachedNodes) {
+                    const depth = depths.get(node.id()) ?? 0;
+                    if (!buckets.has(depth)) buckets.set(depth, []);
+                    buckets.get(depth).push(node);
+                  }
+
+                  let maxY = 0;
+                  const sortedDepths = [...buckets.keys()].sort((a, b) => a - b);
+                  for (const depth of sortedDepths) {
+                    const bucket = buckets.get(depth).sort(compareNodes);
+                    const startY = -(bucket.length - 1) * verticalSpacing / 2;
+                    bucket.forEach((node, index) => {
+                      const y = startY + index * verticalSpacing;
+                      node.position({ x: depth * horizontalSpacing, y });
+                      maxY = Math.max(maxY, Math.abs(y));
+                    });
+                  }
+
+                  const unreachedStartY = maxY + 250;
+                  const unreached = unreachedNodes.toArray().sort(compareNodes);
+                  unreached.forEach((node, index) => {
+                    const column = index % 5;
+                    const row = Math.floor(index / 5);
+                    node.position({
+                      x: column * horizontalSpacing,
+                      y: unreachedStartY + row * verticalSpacing
+                    });
+                  });
+
+                  finishLayout();
+                }
+
+                function computeDepths(rootIds) {
+                  const depths = new Map();
+                  const queue = [];
+                  for (const rootId of rootIds) {
+                    if (cy.getElementById(rootId).empty()) continue;
+                    depths.set(rootId, 0);
+                    queue.push(rootId);
+                  }
+
+                  while (queue.length) {
+                    const currentId = queue.shift();
+                    const currentDepth = depths.get(currentId) ?? 0;
+                    const outgoingEdges = cy.getElementById(currentId).outgoers('edge').not('.hiddenByRelationship');
+                    for (const edge of outgoingEdges) {
+                      const nextId = edge.target().id();
+                      const nextDepth = currentDepth + 1;
+                      if (depths.has(nextId) && depths.get(nextId) <= nextDepth) continue;
+                      depths.set(nextId, nextDepth);
+                      queue.push(nextId);
+                    }
+                  }
+
+                  return depths;
+                }
+
+                function rotateLayoutLeftToRight() {
+                  cy.nodes().forEach(node => {
+                    const oldX = node.position('x');
+                    const oldY = node.position('y');
+                    node.position({ x: oldY, y: oldX });
+                  });
+                }
+
+                function finishLayout() {
+                  setNodeLock(true);
+                  cy.fit(undefined, 60);
+                }
+
+                function setNodeLock(locked) {
+                  document.getElementById('lock-nodes').checked = locked;
+                  if (locked) cy.nodes().ungrabify();
+                  else cy.nodes().grabify();
+                }
+
+                function compareNodes(a, b) {
+                  return `${a.data('namespace')} ${a.data('label')} ${a.id()}`
+                    .localeCompare(`${b.data('namespace')} ${b.data('label')} ${b.id()}`);
+                }
+
+                function setLayoutNote(name) {
+                  const note = document.getElementById('layout-note');
+                  if (name === 'entrypoint-flow') {
+                    const roots = flowRoots();
+                    const hasEntrypoint = roots.some(node => node.data('isEntrypoint'));
+                    note.textContent = hasEntrypoint
+                      ? 'Entrypoint Flow places Program/Main-style entrypoints on the left and dependencies to the right.'
+                      : 'No entrypoints detected; using dependency roots instead.';
+                    return;
+                  }
+
+                  note.textContent = name === 'breadthfirst-lr'
+                    ? 'Breadthfirst LR uses dependency roots and places dependencies toward the right.'
+                    : 'Layout changes keep current filters and selection.';
+                }
+
+                function zoomBy(factor) {
+                  const nextZoom = Math.max(cy.minZoom(), Math.min(cy.maxZoom(), cy.zoom() * factor));
+                  cy.animate({ zoom: nextZoom, center: { eles: selectedElementOrGraph() } }, { duration: 120 });
+                }
+
+                function zoomIn() {
+                  zoomBy(1.2);
+                }
+
+                function zoomOut() {
+                  zoomBy(1 / 1.2);
+                }
+
+                function resetZoom() {
+                  cy.animate({ zoom: 1, center: { eles: selectedElementOrGraph() } }, { duration: 180 });
+                }
+
+                function fitGraph() {
+                  cy.fit(undefined, 40);
+                }
+
+                function selectedElementOrGraph() {
+                  return selectedNodeId ? cy.getElementById(selectedNodeId) : cy.elements();
+                }
+
+                function fitSelected() {
+                  if (!selectedNodeId) {
+                    setStatus('Select a node first.');
+                    return;
+                  }
+
+                  const selected = cy.getElementById(selectedNodeId);
+                  cy.fit(selected.closedNeighborhood().not('.hiddenByRelationship'), 60);
+                }
+
+                function centerSelected() {
+                  if (!selectedNodeId) {
+                    setStatus('Select a node first.');
+                    return;
+                  }
+
+                  cy.center(cy.getElementById(selectedNodeId));
+                }
+
+                function handleKeyboardShortcut(event) {
+                  const tag = document.activeElement?.tagName?.toLowerCase();
+                  if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+
+                  const panStep = event.shiftKey ? 180 : 80;
+                  const key = event.key.toLowerCase();
+
+                  if (event.key === '+' || event.key === '=') {
+                    event.preventDefault();
+                    zoomIn();
+                  } else if (event.key === '-') {
+                    event.preventDefault();
+                    zoomOut();
+                  } else if (event.key === '0') {
+                    event.preventDefault();
+                    resetZoom();
+                  } else if (key === 'f') {
+                    event.preventDefault();
+                    fitGraph();
+                  } else if (event.key === 'ArrowUp' || key === 'w') {
+                    event.preventDefault();
+                    panDiagram(0, panStep);
+                  } else if (event.key === 'ArrowDown' || key === 's') {
+                    event.preventDefault();
+                    panDiagram(0, -panStep);
+                  } else if (event.key === 'ArrowLeft' || key === 'a') {
+                    event.preventDefault();
+                    panDiagram(panStep, 0);
+                  } else if (event.key === 'ArrowRight' || key === 'd') {
+                    event.preventDefault();
+                    panDiagram(-panStep, 0);
+                  } else if (event.key === 'Escape') {
+                    event.preventDefault();
+                    resetSelection();
+                    clearSearch();
+                  }
+                }
+
+                function panDiagram(x, y) {
+                  cy.panBy({ x, y });
                 }
 
                 function labelWidth(ele) {

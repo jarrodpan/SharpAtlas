@@ -41,6 +41,26 @@ public sealed class ArchitectureGraphHtmlWriterTests : IDisposable
     }
 
     [Fact]
+    public void RenderIncludesNavigationAndEntrypointFlowControls()
+    {
+        var html = ArchitectureGraphHtmlWriter.Render(CreateGraph());
+
+        Assert.Contains("entrypoint-flow", html);
+        Assert.Contains("Zoom In", html);
+        Assert.Contains("Zoom Out", html);
+        Assert.Contains("Reset Zoom", html);
+        Assert.Contains("Fit Selected", html);
+        Assert.Contains("Lock node positions", html);
+        Assert.Contains("document.addEventListener('keydown', handleKeyboardShortcut)", html);
+        Assert.Contains("Pan diagram", html);
+        Assert.Contains("function panDiagram", html);
+        Assert.Contains("middlePan", html);
+        Assert.Contains("wheelSensitivity: 0.25", html);
+        Assert.Contains("function flowRoots()", html);
+        Assert.Contains("function runEntrypointFlowLayout()", html);
+    }
+
+    [Fact]
     public void RenderSafelyEscapesEmbeddedJson()
     {
         var graph = CreateGraph(new ArchitectureNode(

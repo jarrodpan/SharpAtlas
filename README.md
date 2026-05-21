@@ -36,6 +36,27 @@ The visualiser supports:
 - relationship filtering
 - layout switching
 
+## HTML visualiser navigation
+
+The generated HTML visualiser supports:
+
+- drag empty space to pan
+- mouse wheel to zoom
+- middle-click drag to pan
+- zoom in/out/reset buttons
+- fit graph
+- fit selected node neighbourhood
+- lock/unlock node positions
+- keyboard shortcuts:
+  - `+` / `=` zoom in
+  - `-` zoom out
+  - `0` reset zoom
+  - `f` fit graph
+  - arrow keys or `WASD` pan diagram
+  - `Escape` clear selection
+
+The default EntryPoint Flow layout places detected Program/Main-style entrypoints on the left and their dependencies to the right.
+
 ## Future global tool usage
 
 ```bash
