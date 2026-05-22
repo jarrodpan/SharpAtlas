@@ -9,7 +9,9 @@
     <ToolCommandName>sharp-atlas</ToolCommandName>
     <PackageId>SharpAtlas</PackageId>
     <Version>0.1.0</Version>
-    <Authors>TODO</Authors>
+    <Authors>Jarrod Pan</Authors>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/jarrodpan/SharpAtlas</RepositoryUrl>
     <Description>SharpAtlas generates class/type dependency maps for C# codebases.</Description>
   </PropertyGroup>
 
