@@ -14,6 +14,8 @@ public sealed class ArchitectureGraphBuilder
         _options = options;
     }
 
+    public ArchitectureGraphOptions Options => _options;
+
     public bool ContainsNode(string id) => _nodes.ContainsKey(id);
 
     public void AddNode(ArchitectureNode node)
@@ -23,7 +25,7 @@ public sealed class ArchitectureGraphBuilder
 
     public void AddEdge(string from, string to, string relationship)
     {
-        if (_options.Relationships.Count > 0 && !_options.Relationships.Contains(relationship))
+        if (!AllowsRelationship(relationship))
         {
             return;
         }
@@ -36,6 +38,16 @@ public sealed class ArchitectureGraphBuilder
         if (!_options.IncludeExternal && !_nodes.ContainsKey(to))
         {
             return;
+        }
+
+        if (_options.ClassReferencesOnly)
+        {
+            if (!IsClassReferenceNode(from) || !IsClassReferenceNode(to))
+            {
+                return;
+            }
+
+            relationship = ArchitectureRelationship.References;
         }
 
         _edges.Add(new ArchitectureEdge(from, to, relationship));
@@ -68,5 +80,17 @@ public sealed class ArchitectureGraphBuilder
             .ToArray();
 
         return new ArchitectureGraph("1.0", DateTime.UtcNow, _source, _options, entrypoints, nodes, edges);
+    }
+
+    private bool IsClassReferenceNode(string id)
+    {
+        return _nodes.TryGetValue(id, out var node) && node.Kind is "class" or "record";
+    }
+
+    private bool AllowsRelationship(string relationship)
+    {
+        return _options.Relationships.Count == 0 ||
+            _options.Relationships.Contains(relationship) ||
+            (_options.ClassReferencesOnly && _options.Relationships.Contains(ArchitectureRelationship.References));
     }
 }

@@ -2,6 +2,7 @@ namespace SharpAtlas.Graph;
 
 public static class ArchitectureRelationship
 {
+    public const string References = "references";
     public const string Constructor = "constructor";
     public const string Field = "field";
     public const string Property = "property";
@@ -14,6 +15,7 @@ public static class ArchitectureRelationship
 
     public static readonly IReadOnlySet<string> All = new HashSet<string>(StringComparer.Ordinal)
     {
+        References,
         Constructor,
         Field,
         Property,

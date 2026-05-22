@@ -25,7 +25,8 @@ public sealed class RoslynArchitectureScanner
             options.IncludeTests,
             options.IncludeExternal,
             GetGroupByName(options.GroupBy),
-            options.Relationships);
+            options.Relationships,
+            options.ClassReferencesOnly);
 
         var builder = new ArchitectureGraphBuilder(source, graphOptions);
         var workspace = MSBuildWorkspace.Create();
@@ -52,7 +53,7 @@ public sealed class RoslynArchitectureScanner
                 continue;
             }
 
-            AddDeclaredTypes(project, compilation, sourceRoot, options.IncludeTests, builder, symbols, cancellationToken);
+            AddDeclaredTypes(project, compilation, sourceRoot, options.IncludeTests, options.ClassReferencesOnly, builder, symbols, cancellationToken);
         }
 
         foreach (var symbol in symbols.Values)
@@ -84,6 +85,7 @@ public sealed class RoslynArchitectureScanner
         Compilation compilation,
         string sourceRoot,
         bool includeTests,
+        bool classReferencesOnly,
         ArchitectureGraphBuilder builder,
         Dictionary<string, INamedTypeSymbol> symbols,
         CancellationToken cancellationToken)
@@ -107,7 +109,7 @@ public sealed class RoslynArchitectureScanner
                     continue;
                 }
 
-                AddDeclaredType(project, sourceRoot, includeTests, builder, symbols, symbol);
+                AddDeclaredType(project, sourceRoot, includeTests, classReferencesOnly, builder, symbols, symbol);
             }
 
             foreach (var declaration in root.DescendantNodes().OfType<DelegateDeclarationSyntax>())
@@ -117,7 +119,7 @@ public sealed class RoslynArchitectureScanner
                     continue;
                 }
 
-                AddDeclaredType(project, sourceRoot, includeTests, builder, symbols, symbol);
+                AddDeclaredType(project, sourceRoot, includeTests, classReferencesOnly, builder, symbols, symbol);
             }
 
             if (root.DescendantNodes().OfType<GlobalStatementSyntax>().Any())
@@ -143,11 +145,17 @@ public sealed class RoslynArchitectureScanner
         Project project,
         string sourceRoot,
         bool includeTests,
+        bool classReferencesOnly,
         ArchitectureGraphBuilder builder,
         Dictionary<string, INamedTypeSymbol> symbols,
         INamedTypeSymbol symbol)
     {
         if (!includeTests && TestExclusionRules.IsTestType(symbol))
+        {
+            return;
+        }
+
+        if (classReferencesOnly && !IsClassReferenceSymbol(symbol))
         {
             return;
         }
@@ -197,6 +205,11 @@ public sealed class RoslynArchitectureScanner
             return;
         }
 
+        if (builder.Options.ClassReferencesOnly && !IsClassReferenceSymbol(dependency.Type))
+        {
+            return;
+        }
+
         if (includeExternal && !builder.ContainsNode(to))
         {
             builder.AddNode(new ArchitectureNode(
@@ -233,4 +246,22 @@ public sealed class RoslynArchitectureScanner
             GroupByMode.NamespaceHierarchy => "namespace-hierarchy",
             _ => "namespace"
         };
+
+    private static bool IsClassReferenceSymbol(INamedTypeSymbol symbol)
+    {
+        return symbol.TypeKind == TypeKind.Class && !IsAttributeSymbol(symbol);
+    }
+
+    private static bool IsAttributeSymbol(INamedTypeSymbol symbol)
+    {
+        for (var current = symbol; current is not null; current = current.BaseType)
+        {
+            if (TypeSymbolFormatter.GetId(current) == "System.Attribute")
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

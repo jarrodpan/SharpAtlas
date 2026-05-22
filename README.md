@@ -102,7 +102,9 @@ sharp-atlas --solution path/to/App.sln --output artifacts/architecture --format 
 
 `--include-external` includes external/library/framework type nodes.
 
-`--relationship` filters edges by comma-separated values: `constructor`, `field`, `property`, `method-parameter`, `method-return`, `inherits`, `implements`, `generic`, `record-parameter`.
+`--class-references-only` keeps only class/record nodes and emits collapsed class-to-class `references` edges for block diagrams. Attribute classes, interfaces, structs, enums, delegates, and other non-class nodes are excluded. `--classes-only` is an alias.
+
+`--relationship` filters edges by comma-separated values: `references`, `constructor`, `field`, `property`, `method-parameter`, `method-return`, `inherits`, `implements`, `generic`, `record-parameter`.
 
 `--group-by` supports `namespace`, `assembly`, `project`, or `namespace-hierarchy`. Use `csproj` as an alias for `project`, and `namespace-tree` as an alias for `namespace-hierarchy`. Default: `namespace`.
 
@@ -133,7 +135,7 @@ class-graph-mermaid.html
 
 `edges`: directed dependencies from requiring type to required type with a `relationship` value.
 
-Relationship values: `constructor`, `field`, `property`, `method-parameter`, `method-return`, `inherits`, `implements`, `generic`, `record-parameter`.
+Relationship values: `references`, `constructor`, `field`, `property`, `method-parameter`, `method-return`, `inherits`, `implements`, `generic`, `record-parameter`.
 
 ## Roadmap
 

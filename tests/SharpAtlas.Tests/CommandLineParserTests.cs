@@ -23,8 +23,20 @@ public sealed class CommandLineParserTests
         Assert.Equal(OutputFormat.All, result.Options!.Format);
         Assert.False(result.Options.IncludeTests);
         Assert.False(result.Options.IncludeExternal);
+        Assert.False(result.Options.ClassReferencesOnly);
         Assert.Equal(GroupByMode.Namespace, result.Options.GroupBy);
         Assert.Equal(ArchitectureRelationship.All.Count, result.Options.Relationships.Count);
+    }
+
+    [Theory]
+    [InlineData("--class-references-only")]
+    [InlineData("--classes-only")]
+    public void ParseSupportsClassReferencesOnly(string option)
+    {
+        var result = CommandLineParser.Parse([option]);
+
+        Assert.True(result.Success);
+        Assert.True(result.Options!.ClassReferencesOnly);
     }
 
     [Fact]

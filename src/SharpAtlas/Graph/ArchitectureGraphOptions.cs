@@ -4,4 +4,5 @@ public sealed record ArchitectureGraphOptions(
     bool IncludeTests,
     bool IncludeExternal,
     string GroupBy,
-    IReadOnlySet<string> Relationships);
+    IReadOnlySet<string> Relationships,
+    bool ClassReferencesOnly = false);
