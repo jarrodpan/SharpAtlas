@@ -91,7 +91,7 @@ public static class CommandLineParser
                 case "--group-by":
                     if (!TryReadValue(args, ref i, out var groupByValue) || !TryParseGroupBy(groupByValue, out groupBy))
                     {
-                        return CommandLineParseResult.Fail("--group-by must be namespace or assembly.");
+                        return CommandLineParseResult.Fail("--group-by must be namespace, assembly, project, or namespace-hierarchy.");
                     }
 
                     break;
@@ -134,7 +134,7 @@ public static class CommandLineParser
           --include-tests         Include test projects and files.
           --include-external      Include external/library/framework type nodes.
           --relationship <list>   Comma-separated relationship filters.
-          --group-by <value>      namespace or assembly. Default: namespace.
+          --group-by <value>      namespace, assembly, project, or namespace-hierarchy. Default: namespace.
           --help                  Show help.
         """;
 
@@ -192,9 +192,13 @@ public static class CommandLineParser
         {
             "namespace" => GroupByMode.Namespace,
             "assembly" => GroupByMode.Assembly,
+            "project" => GroupByMode.Project,
+            "csproj" => GroupByMode.Project,
+            "namespace-hierarchy" => GroupByMode.NamespaceHierarchy,
+            "namespace-tree" => GroupByMode.NamespaceHierarchy,
             _ => default
         };
 
-        return value is "namespace" or "assembly";
+        return value is "namespace" or "assembly" or "project" or "csproj" or "namespace-hierarchy" or "namespace-tree";
     }
 }

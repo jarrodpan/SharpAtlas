@@ -24,7 +24,7 @@ public sealed class RoslynArchitectureScanner
         var graphOptions = new ArchitectureGraphOptions(
             options.IncludeTests,
             options.IncludeExternal,
-            options.GroupBy.ToString().ToLowerInvariant(),
+            GetGroupByName(options.GroupBy),
             options.Relationships);
 
         var builder = new ArchitectureGraphBuilder(source, graphOptions);
@@ -130,7 +130,10 @@ public sealed class RoslynArchitectureScanner
                     project.AssemblyName ?? project.Name,
                     "class",
                     Path.GetRelativePath(sourceRoot, syntaxTree.FilePath),
-                    false));
+                    false)
+                {
+                    Project = GetProjectName(project, sourceRoot)
+                });
                 builder.AddEntrypoint(programId);
             }
         }
@@ -163,7 +166,10 @@ public sealed class RoslynArchitectureScanner
             symbol.ContainingAssembly?.Name ?? project.AssemblyName ?? project.Name,
             TypeSymbolFormatter.GetKind(symbol),
             GetRelativeFile(symbol, sourceRoot),
-            false));
+            false)
+        {
+            Project = GetProjectName(project, sourceRoot)
+        });
     }
 
     private static string? GetRelativeFile(INamedTypeSymbol symbol, string sourceRoot)
@@ -208,4 +214,23 @@ public sealed class RoslynArchitectureScanner
             builder.AddEdge(from, to, dependency.Relationship);
         }
     }
+
+    private static string GetProjectName(Project project, string sourceRoot)
+    {
+        if (!string.IsNullOrWhiteSpace(project.FilePath))
+        {
+            return Path.GetRelativePath(sourceRoot, project.FilePath);
+        }
+
+        return project.Name;
+    }
+
+    private static string GetGroupByName(GroupByMode groupBy) =>
+        groupBy switch
+        {
+            GroupByMode.Assembly => "assembly",
+            GroupByMode.Project => "project",
+            GroupByMode.NamespaceHierarchy => "namespace-hierarchy",
+            _ => "namespace"
+        };
 }

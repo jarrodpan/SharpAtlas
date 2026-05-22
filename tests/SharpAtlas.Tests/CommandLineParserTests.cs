@@ -78,4 +78,17 @@ public sealed class CommandLineParserTests
         Assert.True(OutputFormatSelection.ShouldWriteMermaidViewer(OutputFormat.Mermaid));
         Assert.False(OutputFormatSelection.ShouldWriteHtml(OutputFormat.Mermaid));
     }
+
+    [Theory]
+    [InlineData("project", GroupByMode.Project)]
+    [InlineData("csproj", GroupByMode.Project)]
+    [InlineData("namespace-hierarchy", GroupByMode.NamespaceHierarchy)]
+    [InlineData("namespace-tree", GroupByMode.NamespaceHierarchy)]
+    public void ParseSupportsProjectAndNamespaceHierarchyGrouping(string value, GroupByMode expected)
+    {
+        var result = CommandLineParser.Parse(["--group-by", value]);
+
+        Assert.True(result.Success);
+        Assert.Equal(expected, result.Options!.GroupBy);
+    }
 }

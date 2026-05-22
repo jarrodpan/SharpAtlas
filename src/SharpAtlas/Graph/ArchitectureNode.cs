@@ -7,4 +7,7 @@ public sealed record ArchitectureNode(
     string Assembly,
     string Kind,
     string? File,
-    bool IsExternal);
+    bool IsExternal)
+{
+    public string? Project { get; init; }
+}

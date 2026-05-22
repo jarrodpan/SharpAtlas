@@ -220,7 +220,7 @@ public static class ArchitectureGraphHtmlWriter
 
                 <aside>
                   <label for="search">Search</label>
-                  <input id="search" type="search" placeholder="Type, namespace, assembly, file">
+                  <input id="search" type="search" placeholder="Type, namespace, project, assembly, file">
                   <div class="message" id="match-message"></div>
 
                   <label for="layout">Layout</label>
@@ -238,6 +238,8 @@ public static class ArchitectureGraphHtmlWriter
                   <select id="group-mode">
                     <option value="namespace">namespace</option>
                     <option value="assembly">assembly</option>
+                    <option value="project">project</option>
+                    <option value="namespace-root">namespace-root</option>
                   </select>
 
                   <label>Navigate</label>
@@ -304,6 +306,7 @@ public static class ArchitectureGraphHtmlWriter
                       label: node.label,
                       namespace: node.namespace || '',
                       assembly: node.assembly || '',
+                      project: node.project || '',
                       kind: node.kind || '',
                       file: node.file || '',
                       isExternal: Boolean(node.isExternal),
@@ -539,6 +542,7 @@ public static class ArchitectureGraphHtmlWriter
                     ['id', node.id()],
                     ['namespace', node.data('namespace')],
                     ['assembly', node.data('assembly')],
+                    ['project', node.data('project')],
                     ['kind', node.data('kind')],
                     ['file', node.data('file') || ''],
                     ['isExternal', String(node.data('isExternal'))],
@@ -621,6 +625,7 @@ public static class ArchitectureGraphHtmlWriter
                     node.id(),
                     node.data('namespace'),
                     node.data('assembly'),
+                    node.data('project'),
                     node.data('file')
                   ].join(' ').toLowerCase();
                 }
@@ -874,6 +879,12 @@ public static class ArchitectureGraphHtmlWriter
 
                 function groupValue(ele) {
                   const mode = document.getElementById('group-mode').value;
+                  if (mode === 'namespace-root') {
+                    const namespaceName = ele.data('namespace') || '';
+                    const parts = namespaceName.split('.').filter(Boolean);
+                    return parts.length >= 2 ? `${parts[0]}.${parts[1]}` : (parts[0] || 'Global');
+                  }
+
                   return ele.data(mode) || 'Global';
                 }
 

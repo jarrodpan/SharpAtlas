@@ -51,6 +51,9 @@ public sealed class ArchitectureGraphHtmlWriterTests : IDisposable
         Assert.Contains("Reset Zoom", html);
         Assert.Contains("Fit Selected", html);
         Assert.Contains("Lock node positions", html);
+        Assert.Contains("<option value=\"project\">project</option>", html);
+        Assert.Contains("<option value=\"namespace-root\">namespace-root</option>", html);
+        Assert.Contains("project: node.project || ''", html);
         Assert.Contains("document.addEventListener('keydown', handleKeyboardShortcut)", html);
         Assert.Contains("Pan diagram", html);
         Assert.Contains("function panDiagram", html);

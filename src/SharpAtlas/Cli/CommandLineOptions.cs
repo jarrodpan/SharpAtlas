@@ -13,7 +13,9 @@ public enum OutputFormat
 public enum GroupByMode
 {
     Namespace,
-    Assembly
+    Assembly,
+    Project,
+    NamespaceHierarchy
 }
 
 public sealed record CommandLineOptions

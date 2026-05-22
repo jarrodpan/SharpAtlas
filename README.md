@@ -104,7 +104,7 @@ sharp-atlas --solution path/to/App.sln --output artifacts/architecture --format 
 
 `--relationship` filters edges by comma-separated values: `constructor`, `field`, `property`, `method-parameter`, `method-return`, `inherits`, `implements`, `generic`, `record-parameter`.
 
-`--group-by` supports `namespace` or `assembly`. Default: `namespace`.
+`--group-by` supports `namespace`, `assembly`, `project`, or `namespace-hierarchy`. Use `csproj` as an alias for `project`, and `namespace-tree` as an alias for `namespace-hierarchy`. Default: `namespace`.
 
 `--help` prints CLI help.
 
@@ -129,7 +129,7 @@ class-graph-mermaid.html
 
 `entrypoints`: best-effort entrypoint type IDs such as `Program`, `Startup`, `App`, `Application`, `HostBuilder`, static `Main` hosts, and top-level statement hosts.
 
-`nodes`: C# types with `id`, `label`, `namespace`, `assembly`, `kind`, `file`, and `isExternal`.
+`nodes`: C# types with `id`, `label`, `namespace`, `assembly`, `project`, `kind`, `file`, and `isExternal`.
 
 `edges`: directed dependencies from requiring type to required type with a `relationship` value.
 
