@@ -36,6 +36,38 @@ public sealed class GraphBuilderTests
     }
 
     [Fact]
+    public void BuildKeepsIsolatedNodesByDefault()
+    {
+        var builder = new ArchitectureGraphBuilder(
+            new ArchitectureGraphSource("project", "app.csproj"),
+            new ArchitectureGraphOptions(false, false, "namespace", ArchitectureRelationship.All));
+
+        builder.AddNode(new ArchitectureNode("App.A", "A", "App", "App", "class", "A.cs", false));
+
+        var node = Assert.Single(builder.Build().Nodes);
+        Assert.Equal("App.A", node.Id);
+    }
+
+    [Fact]
+    public void HideIsolatedRemovesNodesWithoutEdges()
+    {
+        var builder = new ArchitectureGraphBuilder(
+            new ArchitectureGraphSource("project", "app.csproj"),
+            new ArchitectureGraphOptions(false, false, "namespace", ArchitectureRelationship.All, HideIsolated: true));
+
+        builder.AddNode(new ArchitectureNode("App.A", "A", "App", "App", "class", "A.cs", false));
+        builder.AddNode(new ArchitectureNode("App.B", "B", "App", "App", "class", "B.cs", false));
+        builder.AddNode(new ArchitectureNode("App.C", "C", "App", "App", "class", "C.cs", false));
+        builder.AddEntrypoint("App.C");
+        builder.AddEdge("App.A", "App.B", ArchitectureRelationship.Constructor);
+
+        var graph = builder.Build();
+
+        Assert.Equal(["App.A", "App.B"], graph.Nodes.Select(node => node.Id).OrderBy(id => id));
+        Assert.Empty(graph.Entrypoints);
+    }
+
+    [Fact]
     public void ClassReferencesOnlyCollapsesClassEdgesToReferences()
     {
         var builder = new ArchitectureGraphBuilder(

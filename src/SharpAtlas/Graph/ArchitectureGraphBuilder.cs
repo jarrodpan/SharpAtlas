@@ -63,23 +63,39 @@ public sealed class ArchitectureGraphBuilder
 
     public ArchitectureGraph Build()
     {
-        var nodes = _nodes.Values
-            .OrderBy(node => node.Namespace, StringComparer.Ordinal)
-            .ThenBy(node => node.Label, StringComparer.Ordinal)
-            .ThenBy(node => node.Id, StringComparer.Ordinal)
-            .ToArray();
-
         var edges = _edges
             .OrderBy(edge => edge.From, StringComparer.Ordinal)
             .ThenBy(edge => edge.To, StringComparer.Ordinal)
             .ThenBy(edge => edge.Relationship, StringComparer.Ordinal)
             .ToArray();
 
+        var nodes = GetOutputNodes(edges)
+            .OrderBy(node => node.Namespace, StringComparer.Ordinal)
+            .ThenBy(node => node.Label, StringComparer.Ordinal)
+            .ThenBy(node => node.Id, StringComparer.Ordinal)
+            .ToArray();
+
+        var nodeIds = nodes.Select(node => node.Id).ToHashSet(StringComparer.Ordinal);
         var entrypoints = _entrypoints
+            .Where(nodeIds.Contains)
             .OrderBy(id => id, StringComparer.Ordinal)
             .ToArray();
 
         return new ArchitectureGraph("1.0", DateTime.UtcNow, _source, _options, entrypoints, nodes, edges);
+    }
+
+    private IEnumerable<ArchitectureNode> GetOutputNodes(IReadOnlyList<ArchitectureEdge> edges)
+    {
+        if (!_options.HideIsolated)
+        {
+            return _nodes.Values;
+        }
+
+        var connectedIds = edges
+            .SelectMany(edge => new[] { edge.From, edge.To })
+            .ToHashSet(StringComparer.Ordinal);
+
+        return _nodes.Values.Where(node => connectedIds.Contains(node.Id));
     }
 
     private bool IsClassReferenceNode(string id)

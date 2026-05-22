@@ -27,6 +27,7 @@ public sealed record CommandLineOptions
     public bool IncludeTests { get; init; }
     public bool IncludeExternal { get; init; }
     public bool ClassReferencesOnly { get; init; }
+    public bool HideIsolated { get; init; }
     public GroupByMode GroupBy { get; init; } = GroupByMode.Namespace;
     public IReadOnlySet<string> Relationships { get; init; } = ArchitectureRelationship.All;
     public bool ShowHelp { get; init; }

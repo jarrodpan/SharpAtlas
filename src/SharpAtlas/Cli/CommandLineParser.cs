@@ -19,6 +19,7 @@ public static class CommandLineParser
         var includeTests = false;
         var includeExternal = false;
         var classReferencesOnly = false;
+        var hideIsolated = false;
         var groupBy = GroupByMode.Namespace;
         var relationships = ArchitectureRelationship.All.ToHashSet(StringComparer.Ordinal);
         var explicitRelationships = false;
@@ -68,6 +69,9 @@ public static class CommandLineParser
                 case "--class-references-only":
                 case "--classes-only":
                     classReferencesOnly = true;
+                    break;
+                case "--hide-isolated":
+                    hideIsolated = true;
                     break;
                 case "--relationship":
                     if (!TryReadValue(args, ref i, out var relationshipValue))
@@ -119,6 +123,7 @@ public static class CommandLineParser
             IncludeTests = includeTests,
             IncludeExternal = includeExternal,
             ClassReferencesOnly = classReferencesOnly,
+            HideIsolated = hideIsolated,
             GroupBy = groupBy,
             Relationships = relationships
         });
@@ -140,6 +145,7 @@ public static class CommandLineParser
           --include-tests         Include test projects and files.
           --include-external      Include external/library/framework type nodes.
           --class-references-only Only include class/record nodes and collapsed class-to-class reference edges.
+          --hide-isolated         Exclude nodes with no incoming or outgoing edges.
           --relationship <list>   Comma-separated relationship filters.
           --group-by <value>      namespace, assembly, project, or namespace-hierarchy. Default: namespace.
           --help                  Show help.

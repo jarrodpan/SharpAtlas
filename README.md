@@ -104,6 +104,8 @@ sharp-atlas --solution path/to/App.sln --output artifacts/architecture --format 
 
 `--class-references-only` keeps only class/record nodes and emits collapsed class-to-class `references` edges for block diagrams. Attribute classes, interfaces, structs, enums, delegates, and other non-class nodes are excluded. `--classes-only` is an alias.
 
+`--hide-isolated` excludes nodes with no incoming or outgoing edges. Leave this off when you want to find source types that are not referenced by the rest of the graph.
+
 `--relationship` filters edges by comma-separated values: `references`, `constructor`, `field`, `property`, `method-parameter`, `method-return`, `inherits`, `implements`, `generic`, `record-parameter`.
 
 `--group-by` supports `namespace`, `assembly`, `project`, or `namespace-hierarchy`. Use `csproj` as an alias for `project`, and `namespace-tree` as an alias for `namespace-hierarchy`. Default: `namespace`.

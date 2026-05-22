@@ -24,8 +24,18 @@ public sealed class CommandLineParserTests
         Assert.False(result.Options.IncludeTests);
         Assert.False(result.Options.IncludeExternal);
         Assert.False(result.Options.ClassReferencesOnly);
+        Assert.False(result.Options.HideIsolated);
         Assert.Equal(GroupByMode.Namespace, result.Options.GroupBy);
         Assert.Equal(ArchitectureRelationship.All.Count, result.Options.Relationships.Count);
+    }
+
+    [Fact]
+    public void ParseSupportsHideIsolated()
+    {
+        var result = CommandLineParser.Parse(["--hide-isolated"]);
+
+        Assert.True(result.Success);
+        Assert.True(result.Options!.HideIsolated);
     }
 
     [Theory]

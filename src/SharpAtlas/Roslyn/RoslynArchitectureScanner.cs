@@ -26,7 +26,8 @@ public sealed class RoslynArchitectureScanner
             options.IncludeExternal,
             GetGroupByName(options.GroupBy),
             options.Relationships,
-            options.ClassReferencesOnly);
+            options.ClassReferencesOnly,
+            options.HideIsolated);
 
         var builder = new ArchitectureGraphBuilder(source, graphOptions);
         var workspace = MSBuildWorkspace.Create();
